@@ -1,0 +1,20 @@
+# Blueprint do Render: Dashboard > New > Blueprint > selecione o repositório Front-IA.
+# O front roda como Web Service Node: serve o build e repassa /api para o serviço de IA
+# com a SERVICE_API_KEY do lado do servidor.
+services:
+  - type: web
+    name: rota-leve-front
+    runtime: node
+    plan: free
+    region: virginia
+    buildCommand: npm ci --include=dev && npm run build
+    startCommand: npm start
+    healthCheckPath: /healthz
+    autoDeploy: true
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
+      - key: API_TARGET       # URL do serviço de IA no Render, ex.: https://rota-leve-ai.onrender.com
+        sync: false
+      - key: SERVICE_API_KEY  # copie o valor gerado no serviço rota-leve-ai (painel > Environment)
+        sync: false

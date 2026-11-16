@@ -22,6 +22,21 @@ Stack: React 18 + TypeScript + Vite + React Router + Leaflet (mapa OpenStreetMap
 
 Se o backend usar `SERVICE_API_KEY`, copie `.env.example` para `.env.local` e preencha a mesma chave. O proxy do Vite injeta o header `X-API-Key`, então a chave nunca vai para o navegador.
 
+## Deploy no Render
+
+O front roda como **Web Service Node** (não como Static Site). O [server.mjs](server.mjs) serve o build e repassa `/api/*` para o serviço de IA, injetando a `X-API-Key` no servidor. Assim a chave nunca vai para o navegador e o backend não precisa de CORS. Também libera só os 3 endpoints que o front usa e limita o `/rank` (20/min por IP, 300/min no total).
+
+1. Faça o deploy do backend pelo `render.yaml` do repositório Backend-IA e anote a URL (ex.: `https://rota-leve-ai.onrender.com`) e a `SERVICE_API_KEY` gerada (painel > Environment).
+2. Faça push deste repositório para o GitHub.
+3. No Render: **New > Blueprint** > repositório `Front-IA`. Ele lê o [render.yaml](render.yaml) e pede:
+   - `API_TARGET` = URL do backend (sem `/` no final)
+   - `SERVICE_API_KEY` = a mesma chave do backend
+4. Abra a URL do front e confira em **Sobre o App** se o status do serviço de IA aparece.
+
+No plano free os serviços "dormem" após 15 min sem uso: a primeira busca pode levar cerca de 1 min. Antes da apresentação, abra o app e faça uma busca para "acordar" os dois serviços.
+
+Para testar o modo produção localmente: `npm run build` e depois `API_TARGET=http://localhost:8000 SERVICE_API_KEY=... npm start` (porta 3000).
+
 ## Telas
 
 | Tela | Rota | O que faz |
