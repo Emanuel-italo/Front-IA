@@ -1,22 +1,27 @@
-import type { Health, Profile, RankResponse, Report, Route } from "./types";
+import type { ChatMessage, ChatResponse, Health, Profile, RankResponse, Report, Route } from "./types";
 
 const BASE = (import.meta.env.VITE_API_URL as string | undefined)?.replace(/\/$/, "") || "/api";
 
 export class ApiError extends Error {
-  constructor(message: string, public status?: number) {
+  /** status = HTTP; ausente quando a falha foi de rede ou timeout (kind). */
+  constructor(message: string, public status?: number, public kind: "http" | "network" | "timeout" = "http") {
     super(message);
   }
 }
 
-async function request<T>(path: string, init?: RequestInit): Promise<T> {
+async function request<T>(path: string, init?: RequestInit, timeoutMs?: number): Promise<T> {
   let res: Response;
   try {
     res = await fetch(`${BASE}${path}`, {
       ...init,
       headers: { "Content-Type": "application/json", ...(init?.headers ?? {}) },
+      signal: timeoutMs ? AbortSignal.timeout(timeoutMs) : init?.signal,
     });
-  } catch {
-    throw new ApiError("Não foi possível falar com o serviço de IA. Ele está rodando?");
+  } catch (err) {
+    if (err instanceof DOMException && (err.name === "TimeoutError" || err.name === "AbortError")) {
+      throw new ApiError("O serviço de IA demorou demais para responder.", undefined, "timeout");
+    }
+    throw new ApiError("Não foi possível falar com o serviço de IA. Ele está rodando?", undefined, "network");
   }
   if (!res.ok) {
     let detail = `Erro ${res.status}`;
@@ -34,6 +39,12 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   return res.json() as Promise<T>;
 }
 
+/** Limites do contrato do /v1/chat. */
+export const CHAT_LIMITS = { maxMessages: 20, maxChars: 1000, maxRoutes: 10 };
+// No plano free do Render o serviço "dorme": a primeira chamada pode levar ~1 min.
+// Um pouco acima do timeout do proxy (70 s), para que o erro do proxy chegue primeiro.
+const CHAT_TIMEOUT_MS = 75_000;
+
 export const api = {
   health: () => request<Health>("/health"),
   demoRoutes: () => request<Route[]>("/v1/demo/routes"),
@@ -42,4 +53,22 @@ export const api = {
       method: "POST",
       body: JSON.stringify({ profile, routes, reports, explain }),
     }),
+  /**
+   * Envia a conversa inteira (o serviço não guarda histórico). Corta para as 20 mensagens mais recentes;
+   * quem chama garante que a última é do usuário.
+   */
+  sendChatMessage: (profile: Profile, messages: ChatMessage[], routes?: Route[], reports?: Report[]) =>
+    request<ChatResponse>(
+      "/v1/chat",
+      {
+        method: "POST",
+        body: JSON.stringify({
+          profile,
+          messages: messages.slice(-CHAT_LIMITS.maxMessages),
+          ...(routes?.length ? { routes: routes.slice(0, CHAT_LIMITS.maxRoutes) } : {}),
+          ...(reports ? { reports } : {}),
+        }),
+      },
+      CHAT_TIMEOUT_MS,
+    ),
 };

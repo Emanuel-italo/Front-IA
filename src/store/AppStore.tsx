@@ -1,6 +1,7 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import type { Profile, RankResponse, RankedRoute, Report, ReportKind, Route } from "../api/types";
 import { seedReports } from "../data/catalog";
+import type { ChatEntry } from "./chat";
 
 // Persistência LOCAL (localStorage) para a demo do front.
 // Em produção: usuário/perfil/rotas salvas vêm da API Java e relatos/confirmações da API .NET.
@@ -35,6 +36,8 @@ export interface LastSearch {
   origin: string;
   destination: string;
   candidates: Route[];
+  /** Relatos enviados ao rank desta busca (reaproveitados pelo chat). */
+  reports: Report[];
   result: RankResponse;
 }
 
@@ -78,6 +81,10 @@ interface Ctx {
   saved: SavedRoute[];
   lastSearch: LastSearch | null;
   setLastSearch: (s: LastSearch | null) => void;
+  /** Conversa da busca atual (só em memória; zera quando a busca muda). */
+  chat: ChatEntry[];
+  /** Atualiza a conversa SE ela ainda for da busca `forSearch` (descarta respostas que chegam depois de trocar a busca). */
+  updateChat: (forSearch: LastSearch, fn: (entries: ChatEntry[]) => ChatEntry[]) => void;
   register: (name: string, email: string, password: string) => Promise<string | null>;
   login: (email: string, password: string) => Promise<string | null>;
   logout: () => void;
@@ -94,6 +101,17 @@ const AppContext = createContext<Ctx | null>(null);
 export function AppProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<State>(load);
   const [lastSearch, setLastSearch] = useState<LastSearch | null>(null);
+  const [chatState, setChatState] = useState<{ search: LastSearch | null; entries: ChatEntry[] }>({ search: null, entries: [] });
+  const chat = chatState.search === lastSearch ? chatState.entries : [];
+  const lastSearchRef = useRef(lastSearch);
+  lastSearchRef.current = lastSearch;
+  const updateChat = useCallback<Ctx["updateChat"]>((forSearch, fn) => {
+    if (lastSearchRef.current !== forSearch) return; // resposta de uma busca que já foi trocada
+    setChatState((s) => {
+      const entries = s.search === forSearch ? s.entries : [];
+      return { search: forSearch, entries: fn(entries) };
+    });
+  }, []);
 
   useEffect(() => {
     try {
@@ -200,6 +218,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
       saved: state.saved.filter((x) => x.userId === user?.id),
       lastSearch,
       setLastSearch,
+      chat,
+      updateChat,
       register,
       login,
       logout,
@@ -210,7 +230,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       removeSaved,
       resetDemo,
     }),
-    [state, user, lastSearch, register, login, logout, setProfile],
+    [state, user, lastSearch, chat, updateChat, register, login, logout, setProfile],
   );
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;

@@ -72,6 +72,21 @@ export interface RankResponse {
   notice: string;
 }
 
+export interface ChatMessage {
+  role: "user" | "assistant";
+  content: string;
+}
+
+export interface ChatResponse {
+  reply: string;
+  source: "llm" | "template" | "template_fallback";
+  fallback_reason: string | null;
+  out_of_scope: boolean;
+  routes_cited: string[];
+  kb_refs: string[];
+  notice: string;
+}
+
 export interface Health {
   status: string;
   ia_generativa: string;

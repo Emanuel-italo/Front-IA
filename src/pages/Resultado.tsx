@@ -1,15 +1,46 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, Navigate, useNavigate } from "react-router-dom";
 import type { RankedRoute } from "../api/types";
 import { profileLabel } from "../data/catalog";
 import { useApp } from "../store/AppStore";
 import { Alert, LabelChip, ModeStrip, PageHeader, ScoreRing } from "../components/ui";
+import { ChatPanel } from "../components/ChatPanel";
+
+const cardId = (routeId: string) => `rota-card-${routeId}`;
 
 export function Resultado() {
-  const { lastSearch } = useApp();
+  const { lastSearch, chat } = useApp();
   const nav = useNavigate();
   const [view, setView] = useState<"leve" | "comum">("leve");
+  const [chatOpen, setChatOpen] = useState(false);
+  const [highlight, setHighlight] = useState<string | null>(null);
+  const chatBtnRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    if (!highlight) return;
+    const t = setTimeout(() => setHighlight(null), 3000);
+    return () => clearTimeout(t);
+  }, [highlight]);
+
   if (!lastSearch) return <Navigate to="/" replace />;
+
+  function closeChat() {
+    setChatOpen(false);
+    requestAnimationFrame(() => chatBtnRef.current?.focus());
+  }
+
+  // Chip de rota citada no chat: fecha o painel, rola até o card e o destaca.
+  function showRoute(routeId: string) {
+    setChatOpen(false);
+    setHighlight(routeId);
+    requestAnimationFrame(() => {
+      const el = document.getElementById(cardId(routeId));
+      if (!el) return;
+      const smooth = !window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      el.scrollIntoView({ behavior: smooth ? "smooth" : "auto", block: "center" });
+      el.focus({ preventScroll: true });
+    });
+  }
 
   const { result, candidates, origin, destination } = lastSearch;
   const routeOf = (id: string) => candidates.find((c) => c.id === id)!;
@@ -45,7 +76,11 @@ export function Resultado() {
         <ol className="route-list">
           {list.map((r, i) => (
             <li key={r.route_id}>
-              <Link to={`/rota/${r.route_id}`} className={`route-card ${r.label}`}>
+              <Link
+                to={`/rota/${r.route_id}`}
+                id={cardId(r.route_id)}
+                className={`route-card ${r.label} ${highlight === r.route_id ? "highlight" : ""}`}
+              >
                 <div className="route-top">
                   <ScoreRing score={r.score} label={r.label} />
                   <div className="grow">
@@ -67,6 +102,13 @@ export function Resultado() {
 
         <p className="small muted">{result.notice}</p>
       </div>
+
+      <button ref={chatBtnRef} className="btn primary chat-open" onClick={() => setChatOpen(true)} aria-haspopup="dialog">
+        <span aria-hidden>💬</span> Tirar dúvidas sobre as rotas
+        {chat.length > 0 && <span className="sr-only"> (conversa em andamento)</span>}
+      </button>
+
+      {chatOpen && <ChatPanel search={lastSearch} onClose={closeChat} onShowRoute={showRoute} />}
     </>
   );
 }

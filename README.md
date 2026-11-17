@@ -45,6 +45,7 @@ Para testar o modo produção localmente: `npm run build` e depois `API_TARGET=h
 | Perfil de mobilidade | `/perfil` | Gestante, cadeirante, carrinho, idoso, mobilidade temporária |
 | Busca de rota | `/` | Origem/destino → chama `GET /v1/demo/routes` + `POST /v1/routes/rank` |
 | Resultado com notas | `/resultado` | Nota, classificação, explicação; alterna com "como um app comum ordenaria" (só por tempo) |
+| Chat "Tirar dúvidas sobre as rotas" | painel em `/resultado` | Conversa com o assistente (`POST /v1/chat`) sobre as rotas da tela; chips das rotas citadas levam ao card |
 | Detalhe da rota | `/rota/:id` | Mapa, trechos, explicação da IA, relatos na rota, cálculo da nota passo a passo, salvar rota |
 | Relatos | `/relatos` | Relatos ativos, confirmação ("ainda está assim"), expirados |
 | Novo relato | `/relatos/novo` | Foto obrigatória, local, tipo e descrição |
@@ -57,6 +58,14 @@ Para testar o modo produção localmente: `npm run build` e depois `API_TARGET=h
 - **Relatos**: ficam no navegador (localStorage), começando com os mesmos relatos de exemplo do backend. A cada busca eles vão no campo `reports` do `/v1/routes/rank`, então **um relato criado ou confirmado no app muda a nota de verdade**. Mesmas regras do backend: TTL de 72 h desde a última confirmação e "confirmado" com 2 ou mais confirmações.
 - **Regras espelhadas da API .NET** (no cliente, para a demo): idempotência (cada usuário confirma um relato uma vez só) e rate limiting (3 relatos a cada 10 min).
 - **Avisos de rota salva**: calculados no cliente a partir dos relatos ativos. No sistema completo chegam por evento (RabbitMQ → consumidor Java → notificação).
+
+## Chat com o assistente
+
+- Envia sempre o mesmo `profile`, `routes` e `reports` usados no `/v1/routes/rank` da busca atual, mais a conversa inteira (no máximo 20 mensagens; o servidor não guarda histórico).
+- A conversa fica **só em memória** (nunca no localStorage, porque pode ter dados de saúde) e zera quando a busca muda.
+- Pergunta que falhou fica marcada como "Não enviada" e sai do histórico, com o botão "Tentar de novo".
+- Passa pelo mesmo proxy do rank (`/api`), com limite de 20 mensagens por minuto por IP no `server.mjs`.
+- Selos: "✨ Resposta gerada por IA" (`source: llm`) ou "⚙️ Resposta automática" (`template`/`template_fallback`). As rotas citadas e a detecção de assunto fora do tema só vêm com a IA generativa ligada no backend (`LLM_API_KEY` e `LLM_MODEL`).
 
 ## Casos de teste negativos (QA)
 

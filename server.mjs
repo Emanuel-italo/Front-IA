@@ -14,9 +14,14 @@ const API_KEY = process.env.SERVICE_API_KEY || "";
 const DIST = join(fileURLToPath(new URL(".", import.meta.url)), "dist");
 
 // Só estes endpoints do serviço de IA ficam expostos pelo proxy.
-const ALLOWED = new Set(["GET /health", "GET /v1/demo/routes", "POST /v1/routes/rank"]);
+const ALLOWED = new Set(["GET /health", "GET /v1/demo/routes", "POST /v1/routes/rank", "POST /v1/chat"]);
 const MAX_BODY = 256 * 1024;
-// Limites no /rank (cada chamada pode gastar crédito de LLM): por IP e global (este não dá para burlar).
+// Limites nos endpoints que podem gastar crédito de LLM: por IP (um balde por endpoint) e global
+// (este não dá para burlar).
+const LIMITED = {
+  "/v1/routes/rank": "Muitas buscas em pouco tempo. Aguarde um minuto.",
+  "/v1/chat": "Muitas mensagens em pouco tempo. Aguarde um minuto.",
+};
 const RANK_LIMIT = { max: 20, windowMs: 60_000 };
 const GLOBAL_LIMIT = { max: 300, windowMs: 60_000 };
 const hits = new Map();
@@ -69,8 +74,8 @@ async function readBody(req) {
 
 async function proxy(req, res, path) {
   if (!ALLOWED.has(`${req.method} ${path}`)) return send(res, 404, { detail: "Endpoint não disponível." });
-  if (path === "/v1/routes/rank" && rateLimited(clientIp(req))) {
-    return send(res, 429, { detail: "Muitas buscas em pouco tempo. Aguarde um minuto." }, { "Retry-After": "60" });
+  if (LIMITED[path] && rateLimited(`${path}|${clientIp(req)}`)) {
+    return send(res, 429, { detail: LIMITED[path] }, { "Retry-After": "60" });
   }
   try {
     const body = req.method === "POST" ? await readBody(req) : undefined;

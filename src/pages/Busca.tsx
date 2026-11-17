@@ -26,8 +26,9 @@ export function Busca() {
       // Rotas candidatas: no sistema completo vêm da Google Directions (modo transit, alternativas) via API Java.
       // Aqui usamos o cenário de demonstração do próprio serviço de IA.
       const candidates = await api.demoRoutes();
-      const result = await api.rank(user.profile, candidates, toApiReports(reports));
-      setLastSearch({ origin, destination, candidates, result });
+      const sentReports = toApiReports(reports);
+      const result = await api.rank(user.profile, candidates, sentReports);
+      setLastSearch({ origin, destination, candidates, reports: sentReports, result });
       nav("/resultado");
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "Erro inesperado ao buscar rotas.");
