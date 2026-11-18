@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type MouseEvent } from "react";
 import { Link, Navigate, useNavigate } from "react-router-dom";
 import type { RankedRoute } from "../api/types";
 import { profileLabel } from "../data/catalog";
@@ -16,7 +16,8 @@ export function Resultado() {
   const [view, setView] = useState<"leve" | "comum">("leve");
   const [chatOpen, setChatOpen] = useState(false);
   const [highlight, setHighlight] = useState<string | null>(null);
-  const chatBtnRef = useRef<HTMLButtonElement>(null);
+  // Botão que abriu o chat (há um no painel lateral e outro fixo no celular): recebe o foco de volta ao fechar.
+  const openerRef = useRef<HTMLButtonElement | null>(null);
 
   // Acorda o serviço de IA em segundo plano (plano free do Render dorme e leva ~40 s para subir),
   // para o chat responder rápido. Não bloqueia a tela e ignora qualquer falha.
@@ -32,9 +33,14 @@ export function Resultado() {
 
   if (!lastSearch) return <Navigate to="/" replace />;
 
+  function openChat(e: MouseEvent<HTMLButtonElement>) {
+    openerRef.current = e.currentTarget;
+    setChatOpen(true);
+  }
+
   function closeChat() {
     setChatOpen(false);
-    requestAnimationFrame(() => chatBtnRef.current?.focus());
+    requestAnimationFrame(() => openerRef.current?.focus());
   }
 
   // Chip de rota citada no chat: fecha o painel, rola até o card e o destaca.
@@ -59,17 +65,32 @@ export function Resultado() {
   return (
     <>
       <PageHeader title="Rotas encontradas" subtitle={`${origin} → ${destination}`} back={() => nav("/")} />
-      <div className="stack">
-        <p className="small muted">Perfil: <strong>{profileLabel(result.profile)}</strong></p>
+      <div className="result-layout">
+        {/* No computador vira painel lateral fixo; no celular fica acima da lista. */}
+        <aside className="result-side">
+          <div className="side-card stack-sm">
+            <span className="small muted">Perfil de mobilidade</span>
+            <strong>{profileLabel(result.profile)}</strong>
+            <span className="small muted">
+              {result.routes.length} opções avaliadas · {result.routes.filter((r) => r.label === "recomendada").length} recomendadas
+            </span>
+          </div>
+          <div className="segmented" role="tablist" aria-label="Ordenação">
+            <button role="tab" aria-selected={view === "leve"} className={view === "leve" ? "on" : ""} onClick={() => setView("leve")}>
+              Ordem Rota Leve
+            </button>
+            <button role="tab" aria-selected={view === "comum"} className={view === "comum" ? "on" : ""} onClick={() => setView("comum")}>
+              Como um app comum ordenaria
+            </button>
+          </div>
+          <button className="btn primary desktop-only" onClick={openChat} aria-haspopup="dialog">
+            <Icon name="message" size={18} /> Tirar dúvidas sobre as rotas
+            {chat.length > 0 && <span className="sr-only"> (conversa em andamento)</span>}
+          </button>
+          <p className="small muted desktop-only">{result.notice}</p>
+        </aside>
 
-        <div className="segmented" role="tablist" aria-label="Ordenação">
-          <button role="tab" aria-selected={view === "leve"} className={view === "leve" ? "on" : ""} onClick={() => setView("leve")}>
-            Ordem Rota Leve
-          </button>
-          <button role="tab" aria-selected={view === "comum"} className={view === "comum" ? "on" : ""} onClick={() => setView("comum")}>
-            Como um app comum ordenaria
-          </button>
-        </div>
+        <div className="result-main stack">
         {view === "comum" && (
           <Alert kind="info">Ordenado só pelo tempo de viagem, sem considerar acessibilidade. Compare a primeira opção com a da ordem Rota Leve.</Alert>
         )}
@@ -113,10 +134,11 @@ export function Resultado() {
           ))}
         </ol>
 
-        <p className="small muted">{result.notice}</p>
+        <p className="small muted mobile-only">{result.notice}</p>
+        </div>
       </div>
 
-      <button ref={chatBtnRef} className="btn primary chat-open" onClick={() => setChatOpen(true)} aria-haspopup="dialog">
+      <button className="btn primary chat-open mobile-only" onClick={openChat} aria-haspopup="dialog">
         <Icon name="message" size={18} /> Tirar dúvidas sobre as rotas
         {chat.length > 0 && <span className="sr-only"> (conversa em andamento)</span>}
       </button>

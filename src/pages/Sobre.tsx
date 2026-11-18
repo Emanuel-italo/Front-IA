@@ -14,7 +14,7 @@ export function Sobre() {
   }, []);
 
   return (
-    <>
+    <div className="narrow">
       <PageHeader title="Sobre o Rota Leve" back={() => nav(-1)} />
       <div className="stack">
         <section className="card stack-sm">
@@ -54,6 +54,6 @@ export function Sobre() {
         </Alert>
         <p className="small muted center">Rota Leve · v1.0</p>
       </div>
-    </>
+    </div>
   );
 }

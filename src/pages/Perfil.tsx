@@ -21,7 +21,7 @@ export function Perfil() {
   }
 
   return (
-    <>
+    <div className="narrow">
       <PageHeader title={isNew ? `Olá, ${user?.name.split(" ")[0]}!` : "Perfil de mobilidade"} subtitle="Ele define o que pesa na nota de cada rota." />
       <div className="stack">
         {isNew && <Alert kind="info">Escolha o perfil que melhor descreve como você se desloca hoje. Dá para trocar quando quiser.</Alert>}
@@ -57,6 +57,6 @@ export function Perfil() {
           </section>
         )}
       </div>
-    </>
+    </div>
   );
 }

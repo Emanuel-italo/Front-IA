@@ -54,6 +54,7 @@ export function Busca() {
         <h1>Para onde você vai hoje?</h1>
       </header>
 
+      <div className="busca-layout">
       <div className="stack">
         {!profile ? (
           <Alert kind="warn" title="Você ainda não tem um perfil de mobilidade">
@@ -91,7 +92,21 @@ export function Busca() {
             <Spinner text={waking ? "Acordando o assistente…" : "Buscando opções e calculando a nota de acessibilidade…"} />
           )}
         </form>
+      </div>
 
+      <aside className="stack">
+        {profile && (
+          <section className="card stack-sm">
+            <h2>O que pesa no seu perfil</h2>
+            <p className="muted">{profile.hint}</p>
+            <ul className="check-list">
+              <li><Icon name="check" size={16} /> Escadas e elevadores das estações</li>
+              <li><Icon name="check" size={16} /> Distância e inclinação da caminhada</li>
+              <li><Icon name="check" size={16} /> Assento e cobertura nos pontos</li>
+              <li><Icon name="check" size={16} /> Relatos da comunidade ainda ativos</li>
+            </ul>
+          </section>
+        )}
         <section className="note">
           <h2>Modo demonstração</h2>
           <p>
@@ -100,6 +115,7 @@ export function Busca() {
             perfil dela. A nota e a explicação vêm do serviço de IA.
           </p>
         </section>
+      </aside>
       </div>
     </>
   );

@@ -392,3 +392,37 @@ details > summary { cursor: pointer; font-weight: 700; min-height: 32px; display
 .empty-state p { max-width: 380px; }
 .empty-state .btn { margin-top: 6px; }
 .empty-icon { width: 48px; height: 48px; border-radius: 50%; display: grid; place-items: center; background: var(--brand-soft); color: var(--brand); }
+
+/* ---------- Layout por tela (celular: uma coluna; computador: usa a largura) ---------- */
+.busca-layout, .result-layout, .detail-layout { display: flex; flex-direction: column; gap: 16px; }
+.result-side { display: flex; flex-direction: column; gap: 12px; }
+.side-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 16px; }
+.check-list { list-style: none; padding: 0; margin: 4px 0 0; display: grid; gap: 8px; font-size: 0.93rem; }
+.check-list li { display: flex; align-items: center; gap: 8px; }
+.check-list .icon { color: var(--brand); }
+
+@media (max-width: 899px) { .desktop-only { display: none !important; } }
+
+@media (min-width: 900px) {
+  :root { font-size: 17px; }
+  .mobile-only { display: none !important; }
+
+  .content { max-width: 1120px; padding: 36px 32px 64px; }
+  .navbar { padding: 0 max(32px, calc((100vw - 1120px) / 2 + 32px)); }
+  .narrow { max-width: 720px; margin: 0 auto; }
+  .page-intro h1 { font-size: 2rem; }
+
+  .busca-layout { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr); gap: 24px; align-items: start; }
+
+  .result-layout { display: grid; grid-template-columns: 300px minmax(0, 1fr); gap: 28px; align-items: start; }
+  .result-side { position: sticky; top: 88px; }
+  .result-side .segmented { grid-template-columns: 1fr; }
+  .result-side .btn { width: 100%; }
+
+  .detail-layout { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 24px; align-items: start; }
+  .detail-map { position: sticky; top: 88px; }
+  .detail-map .map { height: min(620px, calc(100dvh - 130px)); min-height: 380px; }
+
+  .report-list, .saved-list { grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; }
+}
+@media (min-width: 900px) { .fit-desktop { align-self: flex-start; } }

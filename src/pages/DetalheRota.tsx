@@ -66,9 +66,11 @@ export function DetalheRota() {
   return (
     <>
       <PageHeader title={route.summary} subtitle={profile ? `Perfil: ${profileLabel(profile)}` : undefined} back={() => nav(-1)} />
+      <div className="detail-layout">
+        <div className="detail-map">
+          <RouteMap route={route} reports={activeReports} />
+        </div>
       <div className="stack">
-        <RouteMap route={route} reports={activeReports} />
-
         {error && <Alert kind="bad">{error}</Alert>}
         {!ranked && !error && <Spinner text="Recalculando a nota com os relatos mais recentes…" />}
 
@@ -165,6 +167,7 @@ export function DetalheRota() {
             <Icon name="camera" size={18} /> Relatar problema
           </Link>
         </div>
+      </div>
       </div>
     </>
   );

@@ -34,7 +34,7 @@ export function MinhasRotas() {
             </Link>
           </div>
         ) : (
-          <ul className="route-list">
+          <ul className="route-list saved-list">
             {saved.map((s) => (
               <li key={s.id} className="card stack-sm">
                 <div className="row between wrap">

@@ -29,7 +29,7 @@ export function Relatos() {
     <>
       <PageHeader title="Relatos da comunidade" subtitle="Confirme o que você viu. Relato sem confirmação expira em 72 h." />
       <div className="stack">
-        <Link to="/relatos/novo" className="btn primary">
+        <Link to="/relatos/novo" className="btn primary fit-desktop">
           <Icon name="plus" size={18} /> Novo relato
         </Link>
         {msg && <Alert kind={msg.kind}>{msg.text}</Alert>}
@@ -144,7 +144,7 @@ export function NovoRelato() {
   }
 
   return (
-    <>
+    <div className="narrow">
       <PageHeader title="Novo relato" subtitle="Avise a comunidade sobre um obstáculo." back={() => nav(-1)} />
       <form className="stack" onSubmit={submit} noValidate>
         <label className="card photo-input">
@@ -192,6 +192,6 @@ export function NovoRelato() {
         <button className="btn primary">Enviar relato</button>
         <p className="small muted center">Para evitar spam, cada pessoa pode enviar até {RATE_LIMIT.max} relatos a cada {RATE_LIMIT.windowMin} minutos.</p>
       </form>
-    </>
+    </div>
   );
 }
