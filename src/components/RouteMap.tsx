@@ -56,7 +56,7 @@ export function RouteMap({ route, reports }: { route: Route; reports: LocalRepor
       const probs = reports.filter((r) => r.place_id === id);
       if (probs.length) {
         L.marker([p.lat, p.lng], {
-          icon: L.divIcon({ className: "map-warn", html: "⚠️", iconSize: [28, 28], iconAnchor: [14, 14] }),
+          icon: L.divIcon({ className: "map-warn", html: "<span>!</span>", iconSize: [24, 24], iconAnchor: [12, 12] }),
         })
           .bindTooltip(`${placeName(id)}: ${probs.map((r) => reportKindLabel(r.kind)).join(", ")}`)
           .addTo(map);

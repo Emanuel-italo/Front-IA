@@ -6,6 +6,7 @@ import { useApp } from "../store/AppStore";
 import { Alert, LabelChip, ModeStrip, PageHeader, ScoreRing } from "../components/ui";
 import { ChatPanel } from "../components/ChatPanel";
 import { api } from "../api/client";
+import { Icon } from "../components/Icon";
 
 const cardId = (routeId: string) => `rota-card-${routeId}`;
 
@@ -92,16 +93,21 @@ export function Resultado() {
                   <ScoreRing score={r.score} label={r.label} />
                   <div className="grow">
                     <div className="row between">
-                      <span className="small muted">#{i + 1}</span>
+                      <span className="rank-pos">Opção {i + 1}</span>
                       <LabelChip label={r.label} />
                     </div>
                     <h3>{r.summary}</h3>
                     <p className="small muted">{r.duration_min} min · {r.walk_m} m a pé</p>
                   </div>
+                  <Icon name="chevron" className="card-chevron" />
                 </div>
                 <ModeStrip legs={routeOf(r.route_id).legs} />
                 {r.explanation && <p className="expl">{r.explanation.resumo}</p>}
-                {r.blocking && <p className="block-note">⛔ Bloqueada para o seu perfil</p>}
+                {r.blocking && (
+                  <p className="block-note">
+                    <Icon name="ban" size={16} /> Bloqueada para o seu perfil
+                  </p>
+                )}
               </Link>
             </li>
           ))}
@@ -111,7 +117,7 @@ export function Resultado() {
       </div>
 
       <button ref={chatBtnRef} className="btn primary chat-open" onClick={() => setChatOpen(true)} aria-haspopup="dialog">
-        <span aria-hidden>💬</span> Tirar dúvidas sobre as rotas
+        <Icon name="message" size={18} /> Tirar dúvidas sobre as rotas
         {chat.length > 0 && <span className="sr-only"> (conversa em andamento)</span>}
       </button>
 

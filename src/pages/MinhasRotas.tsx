@@ -3,6 +3,7 @@ import { isConfirmed, placeName, profileLabel, reportKindLabel } from "../data/c
 import { useApp } from "../store/AppStore";
 import { useSavedAlerts } from "../store/alerts";
 import { Alert, LabelChip, ModeStrip, PageHeader } from "../components/ui";
+import { Icon } from "../components/Icon";
 
 export function MinhasRotas() {
   const { saved, removeSaved } = useApp();
@@ -14,7 +15,7 @@ export function MinhasRotas() {
       <div className="stack">
         {alerts.map((a) =>
           a.problems.map((p) => (
-            <Alert key={`${a.saved.id}-${p.id}`} kind={isConfirmed(p) ? "bad" : "warn"} title={`⚠️ ${reportKindLabel(p.kind)}: ${placeName(p.place_id)}`}>
+            <Alert key={`${a.saved.id}-${p.id}`} kind={isConfirmed(p) ? "bad" : "warn"} title={`${reportKindLabel(p.kind)}: ${placeName(p.place_id)}`}>
               Afeta sua rota “{a.saved.nickname}”{isConfirmed(p) ? "" : " (relato ainda não confirmado)"}.{" "}
               <Link to="/?auto=1">Veja uma alternativa</Link>
             </Alert>
@@ -22,9 +23,15 @@ export function MinhasRotas() {
         )}
 
         {saved.length === 0 ? (
-          <div className="card center stack">
-            <p className="muted">Você ainda não salvou nenhuma rota.</p>
-            <Link to="/" className="btn primary">Buscar uma rota</Link>
+          <div className="card empty-state">
+            <span className="empty-icon">
+              <Icon name="bookmark" size={24} />
+            </span>
+            <h2>Nenhuma rota salva</h2>
+            <p className="muted">Salve uma rota no detalhe dela para receber avisos quando um elevador ou acesso do caminho tiver problema.</p>
+            <Link to="/" className="btn primary">
+              <Icon name="search" size={18} /> Buscar uma rota
+            </Link>
           </div>
         ) : (
           <ul className="route-list">

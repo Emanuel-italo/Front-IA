@@ -5,6 +5,7 @@ import type { Leg, Profile, RankedRoute, Route } from "../api/types";
 import { isActive, isConfirmed, placeName, profileLabel, reportKindLabel } from "../data/catalog";
 import { routePlaceIds, toApiReports, useApp } from "../store/AppStore";
 import { RouteMap } from "../components/RouteMap";
+import { Icon } from "../components/Icon";
 import { Alert, LabelChip, MODE_INFO, PageHeader, ScoreRing, Spinner } from "../components/ui";
 
 const SOURCE_TEXT = {
@@ -91,9 +92,14 @@ export function DetalheRota() {
                     <ul>{ranked.explanation.pontos_de_atencao.map((p, i) => <li key={i}>{p}</li>)}</ul>
                   </>
                 )}
-                {ranked.explanation.dica && <p className="tip">💡 {ranked.explanation.dica}</p>}
-                <p className="small muted">
-                  {ranked.explanation.source === "llm" ? "✨ " : "⚙️ "}
+                {ranked.explanation.dica && (
+                  <p className="tip">
+                    <Icon name="bulb" size={18} />
+                    <span>{ranked.explanation.dica}</span>
+                  </p>
+                )}
+                <p className={`source-note ${ranked.explanation.source === "llm" ? "llm" : ""}`}>
+                  <Icon name={ranked.explanation.source === "llm" ? "sparkle" : "cog"} size={15} />
                   {SOURCE_TEXT[ranked.explanation.source]}
                 </p>
               </div>
@@ -108,7 +114,9 @@ export function DetalheRota() {
           <ol className="timeline">
             {route.legs.map((l, i) => (
               <li key={i} className={`tl-${l.mode.toLowerCase()}`}>
-                <span className="tl-icon" aria-hidden>{MODE_INFO[l.mode].icon}</span>
+                <span className="tl-icon">
+                  <Icon name={MODE_INFO[l.mode].icon} size={18} />
+                </span>
                 <div>
                   <p>{legText(l)}</p>
                   <p className="small muted">{l.duration_min} min</p>
@@ -149,11 +157,13 @@ export function DetalheRota() {
         <div className="row wrap">
           {ranked && profile && !isSaved && (
             <button className="btn primary" onClick={() => { saveRoute(route, ranked, profile, route.summary); setJustSaved(true); }}>
-              ⭐ Salvar rota e receber avisos
+              <Icon name="bookmark" size={18} /> Salvar rota e receber avisos
             </button>
           )}
           {(isSaved || justSaved) && <Alert kind="ok">Rota salva. Se algum elevador dela quebrar, você verá um aviso em Minhas rotas.</Alert>}
-          <Link className="btn" to={`/relatos/novo?local=${encodeURIComponent([...routePlaceIds(route)][0] ?? "")}`}>📷 Relatar problema</Link>
+          <Link className="btn" to={`/relatos/novo?local=${encodeURIComponent([...routePlaceIds(route)][0] ?? "")}`}>
+            <Icon name="camera" size={18} /> Relatar problema
+          </Link>
         </div>
       </div>
     </>

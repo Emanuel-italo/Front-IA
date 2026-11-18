@@ -3,6 +3,7 @@ import { api, ApiError, CHAT_LIMITS } from "../api/client";
 import { profileLabel } from "../data/catalog";
 import { useApp, type LastSearch } from "../store/AppStore";
 import { buildChatMessages, chatId, type ChatEntry } from "../store/chat";
+import { Icon } from "./Icon";
 
 const DEFAULT_NOTICE =
   "Assistente com IA: as respostas podem conter erros. Confirme a situação de elevadores e acessos nos canais oficiais. Não informe dados pessoais na conversa.";
@@ -147,7 +148,7 @@ export function ChatPanel({ search, onClose, onShowRoute }: Props) {
             </p>
           </div>
           <button className="icon-btn" onClick={onClose} aria-label="Fechar o chat">
-            ✕
+            <Icon name="close" />
           </button>
         </header>
         <p className="chat-notice small">{notice}</p>
@@ -172,13 +173,14 @@ export function ChatPanel({ search, onClose, onShowRoute }: Props) {
               {e.role === "assistant" && e.meta && (
                 <>
                   <span className={`chat-source ${e.meta.source === "llm" ? "llm" : "auto"}`}>
-                    {e.meta.source === "llm" ? "✨ Resposta gerada por IA" : "⚙️ Resposta automática"}
+                    <Icon name={e.meta.source === "llm" ? "sparkle" : "cog"} size={13} />
+                    {e.meta.source === "llm" ? "Resposta gerada por IA" : "Resposta automática"}
                   </span>
                   {e.meta.routes_cited.length > 0 && (
                     <div className="chat-cited" aria-label="Rotas citadas na resposta">
                       {e.meta.routes_cited.map((id) => (
                         <button key={id} className="chip-btn" onClick={() => onShowRoute(id)}>
-                          <span aria-hidden>📍</span> {routeName(id)}
+                          <Icon name="pin" size={15} /> {routeName(id)}
                           <span className="sr-only"> — mostrar na lista de rotas</span>
                         </button>
                       ))}
@@ -189,7 +191,9 @@ export function ChatPanel({ search, onClose, onShowRoute }: Props) {
 
               {e.status === "failed" && e.error && (
                 <div className="chat-error" role="alert">
-                  <span>⚠️ Não enviada. {e.error.message}</span>
+                  <span className="chat-error-text">
+                    <Icon name="alert" size={16} /> Não enviada. {e.error.message}
+                  </span>
                   {e.error.retryable && (
                     <button className="btn small-btn" onClick={() => void send(e.content, e.id)} disabled={pending}>
                       Tentar de novo
@@ -239,7 +243,7 @@ export function ChatPanel({ search, onClose, onShowRoute }: Props) {
               {text.length}/{CHAT_LIMITS.maxChars}
             </span>
             <button className="btn primary" disabled={!text.trim() || pending} aria-label="Enviar pergunta">
-              Enviar ➤
+              <Icon name="send" size={17} /> Enviar
             </button>
           </div>
         </form>

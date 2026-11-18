@@ -27,21 +27,21 @@ export const DESTINATION = { name: "UBS Centro (pré-natal)", lat: -23.5528, lng
 export const placeById = (id?: string | null) => PLACES.find((p) => p.id === id);
 export const placeName = (id?: string | null) => placeById(id)?.name ?? id ?? "Local sem dados";
 
-export const PROFILES: { id: Profile; label: string; emoji: string; hint: string }[] = [
-  { id: "gestante", label: "Estou grávida", emoji: "🤰", hint: "Limita a caminhada e evita escadas e ladeiras." },
-  { id: "cadeirante", label: "Uso cadeira de rodas", emoji: "♿", hint: "Exige acesso sem degraus; escada sem elevador bloqueia a rota." },
-  { id: "carrinho", label: "Ando com carrinho de bebê", emoji: "👶", hint: "Exige acesso sem degraus e calçada transitável." },
-  { id: "idoso", label: "Sou pessoa idosa", emoji: "🧓", hint: "Caminhada curta, prioriza assento e cobertura." },
-  { id: "mobilidade_temporaria", label: "Mobilidade reduzida temporária", emoji: "🩼", hint: "Perna engessada, pós-cirurgia: o mínimo de caminhada possível." },
+export const PROFILES: { id: Profile; label: string; hint: string }[] = [
+  { id: "gestante", label: "Estou grávida", hint: "Limita a caminhada e evita escadas e ladeiras." },
+  { id: "cadeirante", label: "Uso cadeira de rodas", hint: "Exige acesso sem degraus; escada sem elevador bloqueia a rota." },
+  { id: "carrinho", label: "Ando com carrinho de bebê", hint: "Exige acesso sem degraus e calçada transitável." },
+  { id: "idoso", label: "Sou pessoa idosa", hint: "Caminhada curta, prioriza assento e cobertura." },
+  { id: "mobilidade_temporaria", label: "Mobilidade reduzida temporária", hint: "Perna engessada, pós-cirurgia: o mínimo de caminhada possível." },
 ];
 
 export const profileLabel = (p?: Profile | null) => PROFILES.find((x) => x.id === p)?.label ?? "Sem perfil";
 
-export const REPORT_KINDS: { id: ReportKind; label: string; emoji: string; placeTypes: PlaceInfo["type"][] }[] = [
-  { id: "elevador_fora", label: "Elevador quebrado", emoji: "🛗", placeTypes: ["station"] },
-  { id: "escada_rolante_fora", label: "Escada rolante parada", emoji: "↗️", placeTypes: ["station"] },
-  { id: "calcada_ruim", label: "Calçada esburacada / obstáculo", emoji: "🚧", placeTypes: ["sidewalk"] },
-  { id: "sem_cobertura", label: "Ponto sem cobertura", emoji: "☔", placeTypes: ["bus_stop"] },
+export const REPORT_KINDS: { id: ReportKind; label: string; placeTypes: PlaceInfo["type"][] }[] = [
+  { id: "elevador_fora", label: "Elevador quebrado", placeTypes: ["station"] },
+  { id: "escada_rolante_fora", label: "Escada rolante parada", placeTypes: ["station"] },
+  { id: "calcada_ruim", label: "Calçada esburacada / obstáculo", placeTypes: ["sidewalk"] },
+  { id: "sem_cobertura", label: "Ponto sem cobertura", placeTypes: ["bus_stop"] },
 ];
 
 export const reportKindLabel = (k: ReportKind) => REPORT_KINDS.find((x) => x.id === k)?.label ?? k;

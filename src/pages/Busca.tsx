@@ -4,6 +4,7 @@ import { api, ApiError } from "../api/client";
 import { DESTINATION, ORIGIN, PROFILES } from "../data/catalog";
 import { toApiReports, useApp } from "../store/AppStore";
 import { Alert, Spinner } from "../components/ui";
+import { Icon } from "../components/Icon";
 
 export function Busca() {
   const { user, reports, setLastSearch } = useApp();
@@ -48,8 +49,8 @@ export function Busca() {
 
   return (
     <>
-      <header className="hero">
-        <p className="small">Olá, {user?.name.split(" ")[0]}</p>
+      <header className="page-intro">
+        <p className="eyebrow">Olá, {user?.name.split(" ")[0]}</p>
         <h1>Para onde você vai hoje?</h1>
       </header>
 
@@ -60,37 +61,43 @@ export function Busca() {
             <Link to="/perfil">Criar meu perfil</Link>
           </Alert>
         ) : (
-          <Link to="/perfil" className="profile-pill" aria-label={`Perfil atual: ${profile.label}. Trocar perfil`}>
-            <span aria-hidden>{profile.emoji}</span> {profile.label} <span className="muted small">· trocar</span>
-          </Link>
+          <div className="profile-bar">
+            <Icon name="user" size={18} />
+            <span className="grow">
+              <span className="small muted block">Perfil de mobilidade</span>
+              <strong>{profile.label}</strong>
+            </span>
+            <Link to="/perfil" className="link-btn">Trocar</Link>
+          </div>
         )}
 
         <form className="card stack" onSubmit={search}>
-          <label>
-            <span><span className="dot origin" aria-hidden /> Origem</span>
-            <input value={origin} onChange={(e) => setOrigin(e.target.value)} />
-          </label>
-          <label>
-            <span><span className="dot dest" aria-hidden /> Destino</span>
-            <input value={destination} onChange={(e) => setDestination(e.target.value)} />
-          </label>
+          <div className="od">
+            <label>
+              <span className="od-label"><span className="dot origin" aria-hidden /> Origem</span>
+              <input value={origin} onChange={(e) => setOrigin(e.target.value)} />
+            </label>
+            <label>
+              <span className="od-label"><span className="dot dest" aria-hidden /> Destino</span>
+              <input value={destination} onChange={(e) => setDestination(e.target.value)} />
+            </label>
+          </div>
           {error && <Alert kind="bad">{error}</Alert>}
           <button className="btn primary" disabled={!profile || loading}>
+            <Icon name="search" size={18} />
             {loading ? "Avaliando rotas…" : "Buscar rotas acessíveis"}
           </button>
           {loading && (
             <Spinner text={waking ? "Acordando o assistente…" : "Buscando opções e calculando a nota de acessibilidade…"} />
           )}
-          <p className="small muted">
-            Modo demonstração: as rotas candidatas são as do cenário da Júlia (Santa Cecília → UBS Centro). A nota e a explicação vêm do serviço de IA.
-          </p>
         </form>
 
-        <section className="card scene">
-          <h2>A cena</h2>
+        <section className="note">
+          <h2>Modo demonstração</h2>
           <p>
-            A Júlia está grávida de 8 meses e precisa ir ao pré-natal. O app comum manda ela pela estação mais rápida — a que está com o elevador
-            quebrado. O Rota Leve reordena as opções pelo que importa para o perfil dela.
+            As rotas candidatas são as do cenário da Júlia, grávida de 8 meses, indo de Santa Cecília ao pré-natal na UBS Centro. O app comum
+            mandaria ela pela estação mais rápida, que está com o elevador quebrado. O Rota Leve reordena as opções pelo que importa para o
+            perfil dela. A nota e a explicação vêm do serviço de IA.
           </p>
         </section>
       </div>

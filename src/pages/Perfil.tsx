@@ -4,6 +4,7 @@ import type { Profile } from "../api/types";
 import { PROFILES } from "../data/catalog";
 import { useApp } from "../store/AppStore";
 import { Alert, PageHeader } from "../components/ui";
+import { Icon } from "../components/Icon";
 
 export function Perfil() {
   const { user, setProfile, logout, resetDemo } = useApp();
@@ -29,7 +30,7 @@ export function Perfil() {
           {PROFILES.map((p) => (
             <label key={p.id} className={`profile-option ${choice === p.id ? "selected" : ""}`}>
               <input type="radio" name="perfil" value={p.id} checked={choice === p.id} onChange={() => { setChoice(p.id); setSaved(false); }} />
-              <span className="profile-emoji" aria-hidden>{p.emoji}</span>
+              <span className="radio-dot" aria-hidden />
               <span>
                 <strong>{p.label}</strong>
                 <span className="small muted block">{p.hint}</span>
@@ -51,7 +52,7 @@ export function Perfil() {
               <button className="btn" onClick={() => { if (confirm("Restaurar os relatos de demonstração? Os relatos criados serão apagados.")) resetDemo(); }}>
                 Restaurar demo
               </button>
-              <button className="btn danger" onClick={logout}>Sair</button>
+              <button className="btn danger" onClick={logout}><Icon name="logout" size={18} /> Sair</button>
             </div>
           </section>
         )}

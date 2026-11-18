@@ -4,6 +4,7 @@ import type { ReportKind } from "../api/types";
 import { PLACES, REPORT_KINDS, hoursLeft, isActive, isConfirmed, placeById, placeName, reportKindLabel } from "../data/catalog";
 import { RATE_LIMIT, useApp } from "../store/AppStore";
 import { Alert, PageHeader } from "../components/ui";
+import { Icon } from "../components/Icon";
 
 function timeAgo(iso: string) {
   const h = Math.round((Date.now() - new Date(iso).getTime()) / 3600_000);
@@ -28,10 +29,12 @@ export function Relatos() {
     <>
       <PageHeader title="Relatos da comunidade" subtitle="Confirme o que você viu. Relato sem confirmação expira em 72 h." />
       <div className="stack">
-        <Link to="/relatos/novo" className="btn primary">📷 Novo relato</Link>
+        <Link to="/relatos/novo" className="btn primary">
+          <Icon name="plus" size={18} /> Novo relato
+        </Link>
         {msg && <Alert kind={msg.kind}>{msg.text}</Alert>}
 
-        {active.length === 0 && <Alert kind="ok">Nenhum problema ativo relatado. 🎉</Alert>}
+        {active.length === 0 && <Alert kind="ok">Nenhum problema ativo relatado.</Alert>}
 
         <ul className="report-list">
           {active.map((r) => {
@@ -42,7 +45,7 @@ export function Relatos() {
                 {r.photo && <img src={r.photo} alt={`Foto do relato: ${reportKindLabel(r.kind)}`} className="report-photo" />}
                 <div className="grow stack-sm">
                   <div className="row between wrap">
-                    <strong>{REPORT_KINDS.find((k) => k.id === r.kind)?.emoji} {reportKindLabel(r.kind)}</strong>
+                    <strong>{reportKindLabel(r.kind)}</strong>
                     <span className={`chip ${isConfirmed(r) ? "bad" : "warn"}`}>
                       {isConfirmed(r) ? `Confirmado · ${r.confirmations}` : "Não confirmado"}
                     </span>
@@ -51,7 +54,13 @@ export function Relatos() {
                   {r.text && <p className="muted">“{r.text}”</p>}
                   <p className="small muted">Relatado {timeAgo(r.reported_at)} · expira em {hoursLeft(r, now)} h sem nova confirmação</p>
                   <button className="btn small-btn" disabled={already} onClick={() => confirm(r.id)}>
-                    {mine ? "Seu relato" : already ? "✓ Você confirmou" : "👍 Ainda está assim"}
+                    {mine ? (
+                      "Seu relato"
+                    ) : already ? (
+                      <><Icon name="check" size={16} /> Você confirmou</>
+                    ) : (
+                      <><Icon name="thumb" size={16} /> Ainda está assim</>
+                    )}
                   </button>
                 </div>
               </li>
@@ -142,7 +151,11 @@ export function NovoRelato() {
           {photo ? (
             <img src={photo} alt="Pré-visualização da foto" />
           ) : (
-            <span className={`photo-placeholder ${touched && !photo ? "invalid" : ""}`}>📷 Tirar ou escolher foto <span className="small muted block">obrigatória</span></span>
+            <span className={`photo-placeholder ${touched && !photo ? "invalid" : ""}`}>
+              <Icon name="camera" size={28} />
+              <span>Tirar ou escolher foto</span>
+              <span className="small muted">obrigatória</span>
+            </span>
           )}
           <input type="file" accept="image/*" capture="environment" onChange={onPhoto} className="sr-only" />
         </label>
@@ -164,7 +177,7 @@ export function NovoRelato() {
           {kinds.map((k) => (
             <label key={k.id} className={`kind-option ${kind === k.id ? "selected" : ""}`}>
               <input type="radio" name="kind" value={k.id} checked={kind === k.id} onChange={() => setKind(k.id)} />
-              <span aria-hidden>{k.emoji}</span> {k.label}
+              <span className="radio-dot" aria-hidden /> {k.label}
             </label>
           ))}
         </fieldset>
