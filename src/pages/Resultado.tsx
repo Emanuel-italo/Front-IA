@@ -5,6 +5,7 @@ import { profileLabel } from "../data/catalog";
 import { useApp } from "../store/AppStore";
 import { Alert, LabelChip, ModeStrip, PageHeader, ScoreRing } from "../components/ui";
 import { ChatPanel } from "../components/ChatPanel";
+import { api } from "../api/client";
 
 const cardId = (routeId: string) => `rota-card-${routeId}`;
 
@@ -15,6 +16,12 @@ export function Resultado() {
   const [chatOpen, setChatOpen] = useState(false);
   const [highlight, setHighlight] = useState<string | null>(null);
   const chatBtnRef = useRef<HTMLButtonElement>(null);
+
+  // Acorda o serviço de IA em segundo plano (plano free do Render dorme e leva ~40 s para subir),
+  // para o chat responder rápido. Não bloqueia a tela e ignora qualquer falha.
+  useEffect(() => {
+    api.health().catch(() => {});
+  }, []);
 
   useEffect(() => {
     if (!highlight) return;

@@ -12,6 +12,7 @@ export function Busca() {
   const [origin, setOrigin] = useState(ORIGIN.name);
   const [destination, setDestination] = useState(DESTINATION.name);
   const [loading, setLoading] = useState(false);
+  const [waking, setWaking] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const profile = PROFILES.find((p) => p.id === user?.profile);
 
@@ -22,18 +23,22 @@ export function Busca() {
     if (origin.trim().toLowerCase() === destination.trim().toLowerCase()) return setError("Origem e destino são iguais.");
     setError(null);
     setLoading(true);
+    setWaking(false);
+    // 502/504 na 1ª tentativa: o serviço está acordando; o cliente espera 5 s e tenta de novo.
+    const wake = { onWaking: () => setWaking(true) };
     try {
       // Rotas candidatas: no sistema completo vêm da Google Directions (modo transit, alternativas) via API Java.
       // Aqui usamos o cenário de demonstração do próprio serviço de IA.
-      const candidates = await api.demoRoutes();
+      const candidates = await api.demoRoutes(wake);
       const sentReports = toApiReports(reports);
-      const result = await api.rank(user.profile, candidates, sentReports);
+      const result = await api.rank(user.profile, candidates, sentReports, true, wake);
       setLastSearch({ origin, destination, candidates, reports: sentReports, result });
       nav("/resultado");
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "Erro inesperado ao buscar rotas.");
     } finally {
       setLoading(false);
+      setWaking(false);
     }
   }
 
@@ -73,7 +78,9 @@ export function Busca() {
           <button className="btn primary" disabled={!profile || loading}>
             {loading ? "Avaliando rotas…" : "Buscar rotas acessíveis"}
           </button>
-          {loading && <Spinner text="Buscando opções e calculando a nota de acessibilidade…" />}
+          {loading && (
+            <Spinner text={waking ? "Acordando o assistente…" : "Buscando opções e calculando a nota de acessibilidade…"} />
+          )}
           <p className="small muted">
             Modo demonstração: as rotas candidatas são as do cenário da Júlia (Santa Cecília → UBS Centro). A nota e a explicação vêm do serviço de IA.
           </p>

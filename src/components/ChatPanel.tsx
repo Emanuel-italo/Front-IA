@@ -39,6 +39,7 @@ export function ChatPanel({ search, onClose, onShowRoute }: Props) {
   const [text, setText] = useState("");
   const [notice, setNotice] = useState(DEFAULT_NOTICE);
   const [slow, setSlow] = useState(false);
+  const [waking, setWaking] = useState(false);
   const panelRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const endRef = useRef<HTMLDivElement>(null);
@@ -77,8 +78,12 @@ export function ChatPanel({ search, onClose, onShowRoute }: Props) {
     updateChat(search, (entries) => [...entries.filter((e) => e.id !== id), { id, role: "user", content: q, status: "pending" }]);
     if (!retryId) setText("");
 
+    setWaking(false);
     try {
-      const res = await api.sendChatMessage(profile, buildChatMessages(history, q), search.candidates, search.reports);
+      // 502/504 na 1ª tentativa: o cliente espera 5 s e tenta de novo uma vez.
+      const res = await api.sendChatMessage(profile, buildChatMessages(history, q), search.candidates, search.reports, {
+        onWaking: () => setWaking(true),
+      });
       setNotice(res.notice || DEFAULT_NOTICE);
       updateChat(search, (entries) => [
         ...entries.map((e) => (e.id === id ? { ...e, status: "sent" as const, error: undefined } : e)),
@@ -93,6 +98,7 @@ export function ChatPanel({ search, onClose, onShowRoute }: Props) {
     } catch (err) {
       updateChat(search, (entries) => entries.map((e) => (e.id === id ? { ...e, status: "failed" as const, error: describeError(err) } : e)));
     } finally {
+      setWaking(false);
       inputRef.current?.focus();
     }
   }
@@ -202,7 +208,11 @@ export function ChatPanel({ search, onClose, onShowRoute }: Props) {
                   <i />
                   <i />
                 </span>
-                {slow ? "Acordando o assistente, isso pode levar alguns segundos…" : "Assistente digitando…"}
+                {waking
+                  ? "Acordando o assistente…"
+                  : slow
+                    ? "Acordando o assistente, isso pode levar alguns segundos…"
+                    : "Assistente digitando…"}
               </p>
             </div>
           )}

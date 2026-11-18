@@ -16,6 +16,10 @@ const DIST = join(fileURLToPath(new URL(".", import.meta.url)), "dist");
 // Só estes endpoints do serviço de IA ficam expostos pelo proxy.
 const ALLOWED = new Set(["GET /health", "GET /v1/demo/routes", "POST /v1/routes/rank", "POST /v1/chat"]);
 const MAX_BODY = 256 * 1024;
+// Timeout do proxy até o serviço de IA. No plano free o backend "dorme" e leva ~40 s para subir.
+// Fica de propósito um pouco ABAIXO do timeout do navegador no chat (75 s, em src/api/client.ts):
+// assim o proxy devolve 504 antes de o navegador desistir, e o front consegue tentar de novo.
+const PROXY_TIMEOUT_MS = 70_000;
 // Limites nos endpoints que podem gastar crédito de LLM: por IP (um balde por endpoint) e global
 // (este não dá para burlar).
 const LIMITED = {
@@ -79,19 +83,20 @@ async function proxy(req, res, path) {
   }
   try {
     const body = req.method === "POST" ? await readBody(req) : undefined;
-    // 70 s: no plano free o backend "dorme" e a primeira chamada pode levar ~1 min.
     const upstream = await fetch(API_TARGET + path, {
       method: req.method,
       headers: { "Content-Type": "application/json", ...(API_KEY ? { "X-API-Key": API_KEY } : {}) },
       body,
-      signal: AbortSignal.timeout(70_000),
+      signal: AbortSignal.timeout(PROXY_TIMEOUT_MS),
     });
     const text = await upstream.text();
     send(res, upstream.status, text, { "Content-Type": upstream.headers.get("content-type") || "application/json" });
   } catch (err) {
     if (err.status === 413) return send(res, 413, { detail: "Requisição muito grande." });
     console.error("proxy error:", err.message);
-    send(res, 502, { detail: "O serviço de IA não respondeu. Tente novamente em instantes." });
+    // Timeout do proxy => 504 (Gateway Timeout); falha de conexão => 502. O front tenta de novo nos dois.
+    const timedOut = err.name === "TimeoutError" || err.name === "AbortError";
+    send(res, timedOut ? 504 : 502, { detail: "O serviço de IA não respondeu. Tente novamente em instantes." });
   }
 }
 
